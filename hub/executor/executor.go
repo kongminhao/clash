@@ -3,6 +3,7 @@ package executor
 import (
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"sync"
 
@@ -162,6 +163,15 @@ func updateGeneral(general *config.General, force bool) {
 	tunnel.SetMode(general.Mode)
 	resolver.DisableIPv6 = !general.IPv6
 
+	if general.InterfaceFallback {
+		if general.Interface != "" {
+			_, err := net.InterfaceByName(general.Interface)
+			if err != nil {
+				log.Infoln("find interface err: %s, interface name: %s", err, general.Interface)
+				general.Interface = ""
+			}
+		}
+	}
 	if general.Interface != "" {
 		dialer.DialHook = dialer.DialerWithInterface(general.Interface)
 		dialer.ListenPacketHook = dialer.ListenPacketWithInterface(general.Interface)
